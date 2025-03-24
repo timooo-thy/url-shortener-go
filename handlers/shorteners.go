@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"context"
@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 	gonanoid "github.com/matoous/go-nanoid/v2"
-	"github.com/timooo-thy/url-shortener-go/db"
 )
 
 type ShortUrl struct {
@@ -22,26 +22,24 @@ type ShortURLResponse struct {
 	ExpiresAt string `json:"expiresAt"`
 }
 
-func main() {
-	e := echo.New()
-	db := db.Setup()
-	defer db.Close(context.Background())
-
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
-	})
-	
-	e.GET("/:shortCode", func(c echo.Context) error {
+func RedirectUrl(db *pgx.Conn) echo.HandlerFunc {
+	return func(c echo.Context) error {
 		shortCode := c.Param("shortCode")
-		var url string
-		err := db.QueryRow(context.Background(), `SELECT "url" FROM "Url" WHERE "shortCode" = $1`, shortCode).Scan(&url)
-		if err != nil {
-			return c.String(http.StatusNotFound, err.Error())
-		}
-		return c.Redirect(http.StatusTemporaryRedirect, url)
-	})
 
-	e.POST("/urls", func(c echo.Context) error {
+		var url string
+		err := db.QueryRow(context.Background(),
+			`SELECT "url" FROM "Url" WHERE "shortCode" = $1`, shortCode).Scan(&url)
+
+		if err != nil {
+			return c.String(http.StatusNotFound, "Short code not found")
+		}
+
+		return c.Redirect(http.StatusTemporaryRedirect, url)
+	}
+}
+
+func CreateShortUrl(db *pgx.Conn) echo.HandlerFunc {
+	return func(c echo.Context) error {
 		u := new(ShortUrl)
 		err := c.Bind(u)
 
@@ -78,7 +76,5 @@ func main() {
 		}
 
 		return c.JSON(http.StatusCreated, resp)
-	})
-
-	e.Logger.Fatal(e.Start(":8000"))
+	}
 }
