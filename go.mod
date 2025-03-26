@@ -1,6 +1,6 @@
 module github.com/timooo-thy/url-shortener-go
 
-go 1.24.1
+go 1.24.0
 
 require (
 	github.com/jackc/pgx/v5 v5.7.3
