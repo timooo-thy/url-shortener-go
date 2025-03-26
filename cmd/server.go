@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/timooo-thy/url-shortener-go/data"
 	"github.com/timooo-thy/url-shortener-go/handlers"
 )
@@ -13,6 +14,8 @@ import (
 func main() {
 	var ctx = context.Background()
 	e := echo.New()
+
+	e.Use(middleware.CORS())
 	db := data.DBSetup()
 	redis := data.RedisSetup()
 

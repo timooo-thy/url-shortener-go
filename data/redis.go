@@ -1,7 +1,6 @@
 package data
 
 import (
-	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -11,10 +10,7 @@ import (
 
 
 func RedisSetup() *redis.Client {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	_ = godotenv.Load()
 	connStr := os.Getenv("REDIS_URL")
 
 	opt, err := redis.ParseURL(connStr)
